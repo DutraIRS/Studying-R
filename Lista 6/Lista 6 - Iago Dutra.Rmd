@@ -90,9 +90,31 @@ p + geom_col() + guides(fill = 'none') + labs(x = NULL, y = "Difference in Years
 ```{r}
 iris
 
-avg_petal_length_per_species <- iris %>%
-  group_by(Species) %>% 
-  summarize(N = n()) %>%
-  mutate(freq = N / sum(N), 
-         pct = round((freq*100), 0))
+```
+
+# Exercício 3
+```{r}
+
+```
+
+# Exercício 4
+
+O gráfico escolhido está disponível em <https://g1.globo.com/economia/noticia/2022/05/31/inflacao-e-protagonista-em-aumento-de-incerteza-com-economia-brasileira-diz-fgv-ibre.ghtml> (acesso em 31/05/2022).
+
+![Um gráfico muito louco!](Capturar.PNG)
+
+```{r}
+library('tidyverse')
+
+meses <- c('mai/21', 'jun/21', 'jul/21', 'ago/21', 'set/21', 'out/21', 'nov/21', 'dez/21', 'jan/22', 'fev/22', 'mar/22', 'abr/22', 'mai/22')
+
+incerteza <- c(119.9, 122.3, 119.3, 119.6, 131.4, 127.1, 125.2, 118.7, 116.4, 117.1, 121.3, 114.9, 115.9)
+
+df <- data.frame(meses, incerteza)
+dadinhos <- as_tibble(df)
+
+dadinhos
+
+grafinho <- ggplot(dadinhos, aes(x = meses, y = incerteza)) + geom_bar(stat = 'identity', width = 0.65, fill = 'pink') + labs(x = NULL, y = NULL, title = 'Indicador de incerteza na economia', subtitle = 'Em pontos') + geom_text(label = dadinhos$incerteza, nudge_y = 5) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
+grafinho
 ```
