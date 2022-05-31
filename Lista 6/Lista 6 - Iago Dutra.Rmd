@@ -110,11 +110,15 @@ meses <- c('mai/21', 'jun/21', 'jul/21', 'ago/21', 'set/21', 'out/21', 'nov/21',
 
 incerteza <- c(119.9, 122.3, 119.3, 119.6, 131.4, 127.1, 125.2, 118.7, 116.4, 117.1, 121.3, 114.9, 115.9)
 
-df <- data.frame(meses, incerteza)
+indice <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+
+df <- data.frame(meses, incerteza, indice)
 dadinhos <- as_tibble(df)
 
 dadinhos
 
-grafinho <- ggplot(dadinhos, aes(x = meses, y = incerteza)) + geom_bar(stat = 'identity', width = 0.65, fill = 'pink') + labs(x = NULL, y = NULL, title = 'Indicador de incerteza na economia', subtitle = 'Em pontos') + geom_text(label = dadinhos$incerteza, nudge_y = 5) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
+grafinho <- ggplot(dadinhos, aes(x = reorder(meses, indice), y = incerteza)) + geom_bar(stat = 'identity', width = 0.70, fill = 'pink') + labs(x = NULL, y = NULL, title = 'Indicador de incerteza na economia', subtitle = 'Em pontos') + geom_text(label = dadinhos$incerteza, nudge_y = 10) + theme(panel.background = element_rect(fill = 'white'), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), panel.grid.major.y = element_line(colour = "black", size = 0.5)) + scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) + geom_bar(data = filter(dadinhos, indice == 13), stat = 'identity', width = 0.70, fill = 'red')
+
 grafinho
+
 ```
