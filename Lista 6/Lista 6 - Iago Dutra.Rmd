@@ -88,8 +88,21 @@ p + geom_col() + guides(fill = 'none') + labs(x = NULL, y = "Difference in Years
 
 # Exercício 2
 ```{r}
+library('tidyverse')
+
 iris
 
+iris <- as_tibble(iris)
+iris
+
+g <- ggplot(iris, mapping = aes(x = Petal.Length, y = Petal.Width, color = Species)) + geom_point()
+g
+
+i <- iris %>%
+  group_by(Species) %>%
+  summarise(N = n()) %>%
+  mutate(freq = 100*N/sum(N), petal = mean(iris$Petal.Length))
+i
 ```
 
 # Exercício 3
