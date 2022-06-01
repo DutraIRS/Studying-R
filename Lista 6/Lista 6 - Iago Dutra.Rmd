@@ -87,22 +87,110 @@ p + geom_col() + guides(fill = 'none') + labs(x = NULL, y = "Difference in Years
 ```
 
 # Exercício 2
+
+Usou-se a base de dados sobre os testes de um novo tratamento para a artrite reumatoide.
+
 ```{r}
 library('tidyverse')
+library('vcd')
+Arthritis
+```
 
-iris
+```{r}
+improv_by_treat <- Arthritis %>%
+  group_by(Treatment, Improved) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N / sum(N),
+         pct = round((freq*100), 0))
+improv_by_treat
 
-iris <- as_tibble(iris)
-iris
+improv_by_treat %>%
+  group_by(Treatment) %>%
+  summarize(total = sum(pct))
 
-g <- ggplot(iris, mapping = aes(x = Petal.Length, y = Petal.Width, color = Species)) + geom_point()
-g
+p <- ggplot(improv_by_treat, aes(x = Treatment, y = pct, fill = Improved))
+p + geom_col(position = "dodge2") +
+labs(x = "Tratamento",y = "Porcentagem", fill = "Melhora do quadro") +
+theme(legend.position = "top") 
 
-i <- iris %>%
-  group_by(Species) %>%
-  summarise(N = n()) %>%
-  mutate(freq = 100*N/sum(N), petal = mean(iris$Petal.Length))
-i
+```
+
+```{r}
+p <- ggplot(improv_by_treat, aes(x = Improved, y = pct, fill = Improved))
+p + geom_col(position = "dodge2") +
+  labs(x = NULL, y = "Percent", fill = "Religion") +
+  guides(fill = 'none') +
+  coord_flip() +
+  facet_grid(~ Treatment) 
+```
+
+```{r}
+library('socviz')
+gss_sm
+
+gss_sm %>% select(1:6) %>% sample_n(size = 10) 
+
+p <- ggplot(data = gss_sm, mapping = aes(x = degree, y = age))
+p + geom_point() 
+```
+
+Olha só, o R ignora linhas sem algum dos dados e levanta um aviso (imaginava que o código quebraria).
+
+```{r}
+p <- ggplot(data = gss_sm, mapping = aes(x = ballot, y = childs))
+p + geom_line(aes(group = sex)) + facet_wrap(~sex) +
+    geom_point()
+```
+
+```{r}
+p <- ggplot(data = gss_sm, mapping = aes(x = sex, y = childs))
+p + geom_boxplot() + theme_bw() 
+
+p <- ggplot(gss_sm, mapping = aes(x = sex, y = childs))
+p + geom_boxplot() + coord_flip() 
+
+p <- ggplot(data = gss_sm, mapping = aes(x = reorder(degree,
+childs, na.rm = TRUE), y = childs))
+p + geom_boxplot() + labs(x = NULL) + coord_flip() 
+
+p <- ggplot(gss_sm, mapping = aes(x = reorder(degree, childs, na.rm=TRUE), y = childs, fill = polviews))
+p + geom_boxplot() + labs(x=NULL) + coord_flip() + theme(legend.position = "top")
+
+```
+
+Como polviews e degree são independentes, foi necessário subdividir. No exemplo do livro, obviamente só é possível que cada governo possua uma ideologia.
+
+```{r}
+p <- ggplot(gss_sm, mapping = aes(x = reorder(degree, childs, na.rm=TRUE), y = childs, color = polviews))
+p + geom_point() + labs(x=NULL) + coord_flip() + theme(legend.position = "top") 
+
+p <- ggplot(gss_sm, mapping = aes(x = reorder(degree, childs, na.rm=TRUE), y = childs, color = polviews))
+p + geom_jitter() + labs(x=NULL) + coord_flip() + theme(legend.position = "top") 
+```
+
+A aplicação do jitter permitiu visualizar os dados anteriormente sobrepostos. Como a variável childs é categórica, não há prejuízo para a exatidão da informação.
+
+```{r}
+p <- ggplot(gss_sm, mapping = aes(x = reorder(degree, childs, na.rm=TRUE), y = childs, color = polviews))
+
+p + geom_jitter(position = position_jitter(width=0.15)) + 
+    labs(x=NULL) + coord_flip() +
+    theme(legend.position = "top") 
+
+
+by_country <- gss_sm %>%
+              group_by(degree, sex) %>%
+              summarize(childs_mean= mean(childs, na.rm = TRUE),
+                        childs_sd = sd(childs, na.rm = TRUE),
+                        sibs_mean = mean(sibs, na.rm = TRUE))
+by_country
+
+by_country <- gss_sm %>%
+              group_by(degree, sibs) %>%
+              summarize_if(is.numeric, funs(mean, sd), na.rm = TRUE) %>%
+              ungroup()
+by_country
+
 ```
 
 # Exercício 3
@@ -130,8 +218,30 @@ dadinhos <- as_tibble(df)
 
 dadinhos
 
-grafinho <- ggplot(dadinhos, aes(x = reorder(meses, indice), y = incerteza)) + geom_bar(stat = 'identity', width = 0.70, fill = 'pink') + labs(x = NULL, y = NULL, title = 'Indicador de incerteza na economia', subtitle = 'Em pontos') + geom_text(label = dadinhos$incerteza, nudge_y = 10) + theme(panel.background = element_rect(fill = 'white'), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), panel.grid.major.y = element_line(colour = "black", size = 0.5)) + scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) + geom_bar(data = filter(dadinhos, indice == 13), stat = 'identity', width = 0.70, fill = 'red')
+grafinho <- ggplot(dadinhos, aes(x = reorder(meses, indice),
+                                 y = incerteza)) +
+            geom_bar(stat = 'identity',
+                     width = 0.70,
+                     fill = 'pink') +
+            labs(x = NULL,
+                 y = NULL,
+                 title = 'Indicador de incerteza na economia',
+                 subtitle = 'Em pontos',
+                 caption = 'Fonte: Ibre/FGV') +
+            geom_text(label = dadinhos$incerteza, nudge_y = 10) +
+            theme(panel.background = element_rect(fill = 'white'),
+                  plot.caption = element_text(hjust = 0),
+                  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                  panel.grid.major.y = element_line(colour = "black", size = 0.5)) +
+            scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) +
+            geom_bar(data = filter(dadinhos, indice == 13),
+                     stat = 'identity',
+                     width = 0.70,
+                     fill = 'red')
 
 grafinho
-
 ```
+
+  O ajuste de cada elemento não é difícil, mas requer pesquisar a sintaxe específica (embora seja possível "chutar" e acertar às vezes).
+
+  Como este gráfico foi produzido antes de entrar em contato com a biblioteca Lubridate, criei uma coluna índice para poder ordenar os dados, já que o padrão é ordem alfabética.
