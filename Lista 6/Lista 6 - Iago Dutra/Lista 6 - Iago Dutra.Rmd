@@ -1,0 +1,481 @@
+---
+title: "Lista 6 - Iago Dutra"
+output:
+  html_document:
+    df_print: paged
+---
+# Exercício 1
+```{r}
+library('gapminder')
+library('ggplot2')
+
+p <- ggplot(data = gapminder, mapping = aes(x = year, y = gdpPercap))
+p + geom_line()
+
+p + geom_line(aes(group = country))
+
+p + geom_line(aes(group = country)) + facet_wrap(~continent)
+
+p + geom_line(color="gray70", aes(group = country)) + 
+  geom_smooth(size = 1.1, method = "loess", se = FALSE) + 
+  scale_y_log10(labels=scales::dollar) + 
+  facet_wrap(~ continent, ncol = 5) + 
+  labs(x = "Year", 
+    y = "GDP per capita", 
+    title = "GDP per capita on Five Continents") 
+```
+
+```{r}
+library('socviz')
+p <- ggplot(data = gss_sm, 
+  mapping = aes(x = age, y = childs)) 
+p + geom_point(alpha = 0.2) + 
+  geom_smooth() + 
+  facet_grid(sex ~ race) 
+
+p <- ggplot(data = gss_sm, mapping = aes(x = bigregion)) 
+p + geom_bar() 
+p + geom_bar(mapping = aes(y = ..prop..))
+p + geom_bar(mapping = aes(y = ..prop.., group = 1)) 
+table(gss_sm$religion) 
+
+
+p <- ggplot(data = gss_sm, mapping = aes(x = religion, color = religion)) 
+p + geom_bar() 
+p <- ggplot(data = gss_sm, mapping = aes(x = religion, fill = religion)) 
+p + geom_bar() + guides(fill = FALSE) 
+
+p <- ggplot(data = gss_sm, mapping = aes(x = bigregion, fill = religion)) 
+p + geom_bar() 
+p + geom_bar(position = 'fill') 
+p + geom_bar(position = "dodge", mapping = aes(y = ..prop..)) 
+p + geom_bar(position = "dodge", mapping = aes(y = ..prop.., group = religion)) 
+p + geom_bar(position = "dodge", mapping = aes(y = ..prop.., 
+                                               group = bigregion)) + facet_wrap(~bigregion, ncol = 1) 
+
+p <- ggplot(data = midwest, mapping = aes(x = area)) 
+p + geom_histogram() 
+p + geom_histogram(bins = 10) 
+```
+
+```{r}
+oh_wi <- c("OH", "WI") 
+p <- ggplot(data = subset(midwest, subset = state %in% oh_wi), 
+            mapping = aes(x = percollege, fill = state)) 
+p + geom_histogram(alpha = 0.4, bins = 20) 
+
+p <- ggplot(data = midwest, mapping = aes(x = area)) 
+p + geom_density() 
+
+p <- ggplot(data = midwest, mapping = aes(x = area, fill = state, 
+                                          color = state)) 
+p + geom_density(alpha = 0.3) 
+
+p <- ggplot(data = subset(midwest, subset = state %in% oh_wi), 
+            mapping = aes(x = area, fill = state, color = state)) 
+p + geom_density(alpha = 0.3, mapping = (aes(y = ..scaled..))) 
+```
+
+```{r}
+p <- ggplot(data = titanic, mapping = aes(x = fate, y = percent, fill = sex))
+p + geom_bar(position = "dodge", stat = "identity") + theme(legend.position = "top") 
+
+oecd_sum
+
+plip <- ggplot(data = oecd_sum, mapping = aes(x = year, y = diff, fill = hi_lo)) 
+plip + geom_col() + guides(fill = 'none') + labs(x = NULL, y = "Difference in Years", title = "The US Life Expectancy Gap", subtitle = "Difference between US and OECD average life expectancies, 1960-2015", caption = "Data: OECD. After a chart by Christopher Ingraham, Washington Post, December 27th 2017.")
+```
+
+# Exercício 2
+
+Usou-se a base de dados sobre os testes de um novo tratamento para a artrite reumatoide.
+
+```{r}
+library('tidyverse')
+library('vcd')
+Arthritis
+```
+
+```{r}
+improv_by_treat <- Arthritis %>%
+  group_by(Treatment, Improved) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N / sum(N),
+         pct = round((freq*100), 0))
+improv_by_treat
+
+improv_by_treat %>%
+  group_by(Treatment) %>%
+  summarize(total = sum(pct))
+
+plap <- ggplot(improv_by_treat, aes(x = Treatment, y = pct, fill = Improved))
+plap + geom_col(position = "dodge2") +
+labs(x = "Tratamento",y = "Porcentagem", fill = "Melhora do quadro") +
+theme(legend.position = "top") 
+
+```
+
+```{r}
+pupipe <- ggplot(improv_by_treat, aes(x = Improved, y = pct, fill = Improved))
+pupipe <- pupipe + geom_col(position = "dodge2") +
+  labs(x = NULL, y = "Percent", fill = "Religion") +
+  guides(fill = 'none') +
+  coord_flip() +
+  facet_grid(~ Treatment) 
+pupipe
+```
+
+```{r}
+library('socviz')
+gss_sm
+
+gss_sm %>% select(1:6) %>% sample_n(size = 10) 
+
+p <- ggplot(data = gss_sm, mapping = aes(x = degree, y = age))
+p + geom_point() 
+```
+
+Olha só, o R ignora linhas sem algum dos dados e levanta um aviso (imaginava que o código quebraria).
+
+```{r}
+p <- ggplot(data = gss_sm, mapping = aes(x = ballot, y = childs))
+p + geom_line(aes(group = sex)) + facet_wrap(~sex) +
+    geom_point()
+```
+
+```{r}
+p <- ggplot(data = gss_sm, mapping = aes(x = sex, y = childs))
+p + geom_boxplot() + theme_bw() 
+
+p <- ggplot(gss_sm, mapping = aes(x = sex, y = childs))
+p + geom_boxplot() + coord_flip() 
+
+plup <- ggplot(data = gss_sm, mapping = aes(x = reorder(degree,
+childs, na.rm = TRUE), y = childs))
+plup + geom_boxplot() + labs(x = NULL) + coord_flip() 
+
+p <- ggplot(gss_sm, mapping = aes(x = reorder(degree, childs, na.rm=TRUE), y = childs, fill = polviews))
+p + geom_boxplot() + labs(x=NULL) + coord_flip() + theme(legend.position = "top")
+
+```
+
+Como polviews e degree são independentes, foi necessário subdividir. No exemplo do livro, obviamente só é possível que cada governo possua uma ideologia.
+
+```{r}
+p <- ggplot(gss_sm, mapping = aes(x = reorder(degree, childs, na.rm=TRUE), y = childs, color = polviews))
+p + geom_point() + labs(x=NULL) + coord_flip() + theme(legend.position = "top") 
+
+p <- ggplot(gss_sm, mapping = aes(x = reorder(degree, childs, na.rm=TRUE), y = childs, color = polviews))
+p + geom_jitter() + labs(x=NULL) + coord_flip() + theme(legend.position = "top") 
+```
+
+A aplicação do jitter permitiu visualizar os dados anteriormente sobrepostos. Como a variável childs é categórica, não há prejuízo para a exatidão da informação.
+
+```{r}
+p <- ggplot(gss_sm, mapping = aes(x = reorder(degree, childs, na.rm=TRUE), y = childs, color = polviews))
+
+p + geom_jitter(position = position_jitter(width=0.15)) + 
+    labs(x=NULL) + coord_flip() +
+    theme(legend.position = "top") 
+
+
+by_degree <- gss_sm %>%
+              group_by(degree, sex) %>%
+              summarize(childs_mean= mean(childs, na.rm = TRUE),
+                        childs_sd = sd(childs, na.rm = TRUE),
+                        sibs_mean = mean(sibs, na.rm = TRUE))
+by_degree
+
+by_country <- by_degree
+
+by_degree <- gss_sm %>%
+              group_by(degree, sibs) %>%
+              summarize_if(is.numeric, funs(mean, sd), na.rm = TRUE) %>%
+              ungroup()
+by_degree
+
+
+p <- ggplot(data = by_degree, mapping = aes(x = sibs, y = reorder(childs_mean, sibs), color = year_mean)) 
+p + geom_point(size=3) + labs(x = "Donor Procurement Rate", y = "", color = "Consent Law") + theme(legend.position="top")
+```
+
+```{r}
+by_degree
+
+p <- ggplot(data = by_degree, mapping = aes(x = sibs, y = reorder(year_mean, sibs))) 
+p + geom_point(size=3) + facet_wrap(~ sibs, scales = "free_y", ncol = 1) + labs(x= "Donor Procurement Rate", y = "") 
+
+by_degree
+
+p <- ggplot(data = by_degree, mapping = aes(x = reorder(sibs, age_mean), y = age_mean)) 
+p + geom_pointrange(mapping = aes(ymin = age_mean - sibs, ymax = age_mean + sibs)) + labs(x= "", y= "Donor Procurement Rate") + coord_flip() 
+
+
+p <- ggplot(data = by_degree, mapping = aes(x = age_mean, y = sibs)) 
+p + geom_point() + geom_text(mapping = aes(label = sibs), hjust = 1.25) 
+
+```
+
+A seguir, o livro usa o dataset "election_historic". Eu usei o dataset election.
+```{r}
+library(ggrepel)
+election
+
+election %>% select (2:7)
+
+p_title <- "States' Votes" 
+p_subtitle <- "2016" 
+p_caption <- "Data for 2016 are provisional."
+
+x_label <- "Electoral votes to democrats - votes to republicans" 
+y_label <- "Votes to Trump" 
+p <- ggplot(election, aes(x = ev_dem - ev_rep, y = pct_trump, label = winner)) 
+p + geom_hline(yintercept = 0.5, size = 1.4, color = "gray80") +
+  geom_vline(xintercept = 0.5, size = 1.4, color = "gray80") +
+  geom_point() + 
+  geom_text_repel() + 
+  labs(x = x_label, y = y_label, title = p_title, subtitle = p_subtitle, caption = p_caption) 
+
+```
+
+```{r}
+pilili <- ggplot(data = organdata, mapping = aes(x = roads, y = donors, 
+color = world)) 
+pilili <- pilili + geom_point() + labs(x = "Road Deaths", y = "Donor Procurement") + 
+guides(color = FALSE) 
+
+
+gss_sm %>% group_by(race, degree) %>% summarize(N = n()) %>% 
+mutate(pct = round(N/sum(N) * 180, 0)) 
+```
+
+# Exercício 3
+
+O gráfico escolhido para refinamento foi distribuição de patient outcome por tratamento.
+
+```{r}
+library(dichromat)
+library(RColorBrewer)
+pupipe
+
+g <- pupipe
+
+g <- g + scale_fill_brewer(palette = "Deuteronopia") + 
+          theme(panel.background = element_rect(fill = 'white'),
+                  plot.caption = element_text(hjust = 0),
+                  axis.text.x = element_text(vjust = 0.5),
+                  panel.grid.major.x = element_line(colour = "grey", size = 0.05)) +
+          labs(title = "Patient Outcome Distribution",
+               subtitle = 'Those who took placebo vs drug',
+               caption = 'Source: My incredible research')
+
+g
+```
+
+
+# Exercício 4
+
+O gráfico escolhido está disponível em <https://g1.globo.com/economia/noticia/2022/05/31/inflacao-e-protagonista-em-aumento-de-incerteza-com-economia-brasileira-diz-fgv-ibre.ghtml> (acesso em 31/05/2022).
+
+![Um gráfico muito louco!](Capturar.PNG)
+
+```{r}
+library('tidyverse')
+
+meses <- c('mai/21', 'jun/21', 'jul/21', 'ago/21', 'set/21', 'out/21', 'nov/21', 'dez/21', 'jan/22', 'fev/22', 'mar/22', 'abr/22', 'mai/22')
+
+incerteza <- c(119.9, 122.3, 119.3, 119.6, 131.4, 127.1, 125.2, 118.7, 116.4, 117.1, 121.3, 114.9, 115.9)
+
+indice <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+
+df <- data.frame(meses, incerteza, indice)
+dadinhos <- as_tibble(df)
+
+dadinhos
+
+grafinho <- ggplot(dadinhos, aes(x = reorder(meses, indice),
+                                 y = incerteza)) +
+            geom_bar(stat = 'identity',
+                     width = 0.70,
+                     fill = 'pink') +
+            labs(x = NULL,
+                 y = NULL,
+                 title = 'Indicador de incerteza na economia',
+                 subtitle = 'Em pontos',
+                 caption = 'Fonte: Ibre/FGV') +
+            geom_text(label = dadinhos$incerteza, nudge_y = 10) +
+            theme(panel.background = element_rect(fill = 'white'),
+                  plot.caption = element_text(hjust = 0),
+                  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                  panel.grid.major.y = element_line(colour = "black", size = 0.5)) +
+            scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) +
+            geom_bar(data = filter(dadinhos, indice == 13),
+                     stat = 'identity',
+                     width = 0.70,
+                     fill = 'red')
+
+grafinho
+ggsave("grafinho.png", grafinho)
+```
+
+  O ajuste de cada elemento não é difícil, mas requer pesquisar a sintaxe específica (embora seja possível "chutar" e acertar às vezes).
+
+  Como este gráfico foi produzido antes de entrar em contato com a biblioteca Lubridate, criei uma coluna índice para poder ordenar os dados, já que o padrão é ordem alfabética.
+  
+```{r}
+
+grafinho <- ggplot(dadinhos, aes(x = reorder(meses, indice),
+                                 y = incerteza)) +
+            geom_line(data = dadinhos, mapping = aes(x = reorder(meses, indice), 
+                                                     y = incerteza, 
+                                                     group = 1),
+                      color = 'black',
+                      size = 1.25) +
+            geom_point(data = dadinhos, mapping = aes(x = reorder(meses, indice), 
+                                                     y = incerteza, 
+                                                     group = 1),
+                      color = 'red',
+                      size = 3) +
+            geom_text(label = dadinhos$incerteza, nudge_y = 12.5, angle = 45) +
+            labs(x = NULL,
+                 y = NULL,
+                 title = 'Indicador de incerteza na economia',
+                 subtitle = 'Em pontos',
+                 caption = 'Fonte: Ibre/FGV') +
+            theme(panel.background = element_rect(fill = 'white'),
+                  plot.caption = element_text(hjust = 0),
+                  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                  panel.grid.major.y = element_line(colour = "grey", size = 0.5)) +
+                  scale_y_continuous(limits = c(0, 150))
+
+grafinho
+```
+
+Já ficou mais elegante, mas eu tive uma ideia interessante: (supondo que incerteza seja ruim) colorir de vermelho os segmentos em que houve piora e de verde os em que houve melhora.
+
+```{r}
+dadinhos
+
+conjuntinho <- c()
+conjuntinho
+
+for (i in seq(from = 1, to = 12, by = 1)) {
+  if (dadinhos[[i, 2]] > dadinhos[[i+1, 2]]) {
+    conjuntinho <- c(conjuntinho, 'green')
+  } else {conjuntinho <- c(conjuntinho, 'red')}
+}
+
+conjuntinho <- c(conjuntinho, 0)
+
+meses <- c('a: mai/21', 'b: jun/21', 'c: jul/21', 'd: ago/21', 'e: set/21', 'f: out/21', 'g: nov/21', 'h: dez/21', 'i: jan/22', 'j: fev/22', 'k: mar/22', 'l: abr/22', 'm: mai/22')
+
+dadinhos <- as_tibble(data.frame(meses, incerteza, indice,conjuntinho))
+dadinhos
+
+asla_fan_club <- ggplot(dadinhos, aes(x = reorder(meses, indice),
+                                 y = incerteza)) +
+  # É uma pena não poder usar for loops dentro do ggplot
+            geom_segment(data = dadinhos, mapping = aes(x = meses[1], 
+                                                        xend = meses[2],
+                                                        y = incerteza[1],
+                                                        yend = incerteza[2],
+                                                        group = 1),
+                      color = conjuntinho[1],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[2], 
+                                                        xend = meses[3],
+                                                        y = incerteza[2],
+                                                        yend = incerteza[3],
+                                                        group = 1),
+                      color = conjuntinho[2],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[3], 
+                                                        xend = meses[4],
+                                                        y = incerteza[3],
+                                                        yend = incerteza[4],
+                                                        group = 1),
+                      color = conjuntinho[3],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[4], 
+                                                        xend = meses[5],
+                                                        y = incerteza[4],
+                                                        yend = incerteza[5],
+                                                        group = 1),
+                      color = conjuntinho[4],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[5], 
+                                                        xend = meses[6],
+                                                        y = incerteza[5],
+                                                        yend = incerteza[6],
+                                                        group = 1),
+                      color = conjuntinho[5],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[6], 
+                                                        xend = meses[7],
+                                                        y = incerteza[6],
+                                                        yend = incerteza[7],
+                                                        group = 1),
+                      color = conjuntinho[6],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[7], 
+                                                        xend = meses[8],
+                                                        y = incerteza[7],
+                                                        yend = incerteza[8],
+                                                        group = 1),
+                      color = conjuntinho[7],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[8], 
+                                                        xend = meses[9],
+                                                        y = incerteza[8],
+                                                        yend = incerteza[9],
+                                                        group = 1),
+                      color = conjuntinho[8],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[9], 
+                                                        xend = meses[10],
+                                                        y = incerteza[9],
+                                                        yend = incerteza[10],
+                                                        group = 1),
+                      color = conjuntinho[9],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[10], 
+                                                        xend = meses[11],
+                                                        y = incerteza[10],
+                                                        yend = incerteza[11],
+                                                        group = 1),
+                      color = conjuntinho[10],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[11], 
+                                                        xend = meses[12],
+                                                        y = incerteza[11],
+                                                        yend = incerteza[12],
+                                                        group = 1),
+                      color = conjuntinho[11],
+                      size = 1.25) +
+            geom_segment(data = dadinhos, mapping = aes(x = meses[12], 
+                                                        xend = meses[13],
+                                                        y = incerteza[12],
+                                                        yend = incerteza[13],
+                                                        group = 1),
+                      color = conjuntinho[12],
+                      size = 1.25) +
+            geom_point(data = dadinhos, mapping = aes(x = reorder(meses, indice), 
+                                                     y = incerteza, 
+                                                     group = 1),
+                      color = 'black',
+                      size = 3) +
+            geom_text(label = dadinhos$incerteza, nudge_y = 12.5, angle = 45) +
+            labs(x = NULL,
+                 y = NULL,
+                 title = 'Indicador de incerteza na economia',
+                 subtitle = 'Em pontos',
+                 caption = 'Fonte: Ibre/FGV') +
+            theme(panel.background = element_rect(fill = 'white'),
+                  plot.caption = element_text(hjust = 0),
+                  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                  panel.grid.major.y = element_line(colour = "grey", size = 0.5)) +
+                  scale_y_continuous(limits = c(0, 150))
+asla_fan_club
+```
+
+Se isso não for o bastante para ignorar a baixa qualidade da feitura dos outros exercícios, eu não sei o que sê-lo-ia.
