@@ -1,0 +1,6 @@
+A coluna país foi removida por só haver um país.
+A coluna preço foi formatada.
+Foram removidos os dados sem informação de ano.
+Vinhos com valores superiores a 10 000 000 de euros foram desconsiderados.
+Vinhos sem tipo, body e acidez especificados foram desconsiderados.
+A coluna rating foi formatada como número.
