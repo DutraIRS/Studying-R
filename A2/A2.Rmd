@@ -1,0 +1,198 @@
+---
+title: "T2 - Projeto de Análise Exploratória e Visualização de Dados"
+output: html_notebook
+---
+
+Vamos trabalhar com a base de dados a seguir, que baixamos do Kaggle e higienizamos no Excel.
+
+```{r}
+library(tidyverse)
+library(readr)
+vinhos <- read_delim("vinhos.csv", delim = ";", 
+    escape_double = FALSE, trim_ws = TRUE)
+View(vinhos)
+```
+
+Observando nossa base, pensamos que pode ser interessaqnte averiguar a existência de dependência entre as variáveis 'rating', 'price' e as outras.
+
+```{r}
+p <- ggplot(data = vinhos, mapping = aes(x = Price, y = Rating, color = Type))
+p + geom_jitter()
+
+#Esse primeiro gráfico, fiz pra explorar as variáveis que mais me chamam a atenção, por serem uma manifestação em preço e nota da qualidade final do vinho. Coloquei preço no eixo x classificação no y. Também experimentei atribuir cor à variável tipode vinho, para observar as alterações nos eixos de acordo com os tipos. Com jitter, impeço que pontos de coordenadas iguais se sobreponham totalmente, para que eu tenha noção de densidade dos pontos.
+
+p <- ggplot(data = vinhos, mapping = aes(x = Price, y = Rating))
+p + geom_jitter()
+#O gráfico anterior ficou de difícil visualização, porque a variável tipo de cvinho possui muitos valores que se confundem no aspecto cor. Por isso, resolvi retirar essa variável por enquanto.
+
+p <- ggplot(data = vinhos, mapping = aes(x = Price, y = Rating))
+p + geom_jitter() + scale_x_log10()
+#É mais fácil visualizar principalmente por não ter a legenda ocupando espaço. Mas e incomoda a escala do eixo x, pois ficam muitos pontos sobrepostos no começo do eixo, e outros muito espaçados no final. Para ajeitar isso, inseri uma mudança para escala logarítmica de base 10.
+
+p + geom_jitter(alpha = .2) + scale_x_log10()
+#Adicionando o parâmetro alpha eu torno os pontos meio transparentes. Assim, a sobreposição de pontos é destacada, e posso ver onde há mais ocorrências.
+
+p <- p + geom_jitter(alpha = .2) + scale_x_log10()
+
+p + facet_wrap(Body ~ Acidity)
+
+#Armazenei o gráfico que eu tinha produzido até então na variável p, e inseri um facetamento em relação à acidez e ao corpo do vinho. Não gostei de como os gráficos ficaram distribuídos, pois ficou difícil de indentificar qual diz o que. Mas, ao invés de continnuar manipulando o facet_wrap, pensei em relacionar essas variáveis a cor e forma, pois elas tem poucos valores, podendo se encaixar bem nesses parâmetros.
+
+a <- ggplot(data = vinhos, mapping = aes(x = Price, y = Rating, color = Body, size = Acidity))
+a + geom_jitter(alpha = .2) + scale_x_log10()
+#Fiz essa relação e até ficou bom, mas como corpo é uma variável contíonua, o ggplot a relaciona a diversos tons da mesma cor. Para diferenciar melhor os valores, eu quero que cada um se relacione a uma cor diferente.
+```
+
+```{r}
+library(RColorBrewer)
+myColors <- brewer.pal(4, "Set1")
+names(myColors) <- levels(vinhos$Body)
+colScale <- scale_colour_manual(name = "Body", values = myColors)
+#Aqui eu importei uma biblioteca que me permite relacionar uma paleta de cores a uma variável.
+
+vinhos <- vinhos %>%
+  mutate_at(vars(Body), factor)
+#Aqui eu tornei corpo uma variável não contínua para evitar confusão na visualização.
+
+
+b <- ggplot(data = vinhos, mapping = aes(x = Price, y = Rating, color = Body, size = Acidity))
+b + geom_jitter(alpha = .2) + scale_x_log10() + colScale
+
+b <- ggplot(data = vinhos, mapping = aes(x = Price, y = Rating, color = Body, size = Acidity))
+b + geom_jitter(alpha = .5) + scale_x_log10() + colScale
+#Criei um gráfico adicionando colScale, e obtive um gráfico que cumpria o meu desejo em relação à variável corpo. Mas a transparência estava muito alta e diferenciava pouco as cores entre si. Por isso, refiz o fráfico aumantando um pouco o parâmetro alpha. Ficou bem legal. É possível perceber uma predominância de roxo no quadrante superior direito do gráfico. Na parte inferior esquerda, o verde e o azul dominam. O verde e o roxo se estendem por toda a nuvem de ocorrências, enquanto o azul se detém à parte inferior. O vermelho aparece poucas vezes, em geral no centro.
+
+
+p + facet_grid(Body ~ Acidity)
+#Achei o comando que organiza o facetamento do modo que eu desejava e o usei nas geoms de antes. Dá para perceber uma padrão na nuvem de ocorrências, aparentemente independente da relação com corpo e acidez.
+```
+
+
+```{r}
+vinhos <- vinhos %>%
+  mutate_at(vars(Acidity), factor)
+#Voltando ao gráfico com cores, preparei a variável acidez para caber no parâmetro forma e escolhi manualmente três formatos adequados aos seus valores.
+
+c <- ggplot(data = vinhos, mapping = aes(x = Price, y = Rating, color = Body))
+c + geom_jitter(alpha = .5, aes(shape = Acidity)) + scale_x_log10() + scale_shape_manual(values = c(0,1,2))
+
+c <- ggplot(data = vinhos, mapping = aes(x = Price, y = Rating, color = Body))
+c + geom_jitter(alpha = .5, aes(shape = Acidity, size = 3)) + scale_x_log10() + scale_shape_manual(values = c(15,16,17))
+#Depois eu modifiquei as formas para destacar a cor de cada ponto.
+
+```
+```{r}
+head(vinhos)
+#Aqui eu chamei minha base de dados para ver como ela ficou após minhas alterações usando pipe. Tá tranquila.
+```
+
+```{r}
+d <- ggplot(data = vinhos, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + facet_wrap(~Type)
+
+vinhos_albarino <- vinhos %>%
+  filter(Type == "Albarino")
+d <- ggplot(data = vinhos_albarino, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Albarino")
+
+vinhos_cabernet <- vinhos %>%
+  filter(Type == "Cabernet Sauvignon")
+d <- ggplot(data = vinhos_cabernet, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Cabernet Sauvignon")
+
+vinhos_cava <- vinhos %>%
+  filter(Type == "Cava")
+d <- ggplot(data = vinhos_cava, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Cava")
+
+vinhos_chardonnay <- vinhos %>%
+  filter(Type == "Chardonnay")
+d <- ggplot(data = vinhos_chardonnay, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Chardonnay")
+
+vinhos_grenache <- vinhos %>%
+  filter(Type == "Grenache")
+d <- ggplot(data = vinhos_grenache, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Grenache")
+
+vinhos_mencia <- vinhos %>%
+  filter(Type == "Mencia")
+d <- ggplot(data = vinhos_mencia, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Mencia")
+
+vinhos_monastrell <- vinhos %>%
+  filter(Type == "Monastrell")
+d <- ggplot(data = vinhos_monastrell, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Monastrell")
+
+vinhos_montsant <- vinhos %>%
+  filter(Type == "Montsant Red")
+d <- ggplot(data = vinhos_montsant, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Montsant Red")
+
+vinhos_pedro <- vinhos %>%
+  filter(Type == "Pedro Ximenez")
+d <- ggplot(data = vinhos_pedro, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Pedro Ximenez")
+
+vinhos_priorat <- vinhos %>%
+  filter(Type == "Priorat Red")
+d <- ggplot(data = vinhos_priorat, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Priorat Red")
+
+vinhos_red <- vinhos %>%
+  filter(Type == "Red")
+d <- ggplot(data = vinhos_red, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Red")
+
+vinhos_ribera <- vinhos %>%
+  filter(Type == "Ribera Del Duero Red")
+d <- ggplot(data = vinhos_ribera, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Ribera Del Duero Red")
+
+vinhos_rioja <- vinhos %>%
+  filter(Type == "Rioja Red")
+d <- ggplot(data = vinhos_rioja, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Rioja Red")
+
+vinhos_white <- vinhos %>%
+  filter(Type == "Rioja White")
+d <- ggplot(data = vinhos_white, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Rioja White")
+
+vinhos_sauvignon <- vinhos %>%
+  filter(Type == "Sauvignon Blanc")
+d <- ggplot(data = vinhos_sauvignon, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Sauvignon Blanc")
+
+vinhos_sherry <- vinhos %>%
+  filter(Type == "Sherry")
+d <- ggplot(data = vinhos_sherry, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Sherry")
+
+vinhos_sparkling <- vinhos %>%
+  filter(Type == "Sparkling")
+d <- ggplot(data = vinhos_sparkling, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Sparkling")
+
+vinhos_syrah <- vinhos %>%
+  filter(Type == "Syrah")
+d <- ggplot(data = vinhos_syrah, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Syrah")
+
+vinhos_tempranillo <- vinhos %>%
+  filter(Type == "Tempranillo")
+d <- ggplot(data = vinhos_tempranillo, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Tempranillo")
+
+vinhos_toro <- vinhos %>%
+  filter(Type == "Toro Red")
+d <- ggplot(data = vinhos_toro, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Toro Red")
+
+vinhos_verdejo <- vinhos %>%
+  filter(Type == "Verdejo")
+d <- ggplot(data = vinhos_verdejo, mapping = aes(x = Year, y = Rating))
+d + geom_jitter() + xlim(1900, 2025) + ylim(4,5) + labs(title = "Verdejo")
+```
+

@@ -1,0 +1,4 @@
+library(RColorBrewer)
+myColors <- brewer.pal(8, "Set1")
+names(myColors) <- levels(vinhos$Rating)
+colScale <- scale_colour_manual(name = "Rating", values = myColors)
