@@ -1,2 +1,2 @@
-# Studying-R
-Exploring R features
+# Studying R
+Exploring R
